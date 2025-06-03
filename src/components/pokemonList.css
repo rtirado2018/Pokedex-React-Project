@@ -1,0 +1,43 @@
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+
+.pkmnList{
+    list-style: none;
+    padding: 30px 50px;
+    border-radius: 6px;
+    background-color: rgba(0, 0, 0, 0.103);
+ 
+}
+
+.pkmn{
+    display: flex;
+    align-items: center;
+    align-content: center;
+    justify-content: center;
+    margin-bottom: 10px;
+    font-size: 1em;
+    font-family: 'Press Start 2P', monospace;
+    color: #c7c6c6;
+    border-radius: 8px;
+    background-color: rgba(0, 0, 0, 0.329);
+  
+
+}
+
+.pkmn:hover{
+    color: #d6d5d5;
+}
+
+.pkmn:active{
+    color: #59526e;
+}
+
+ul.pkmnList li.pkmn img.pkmnSprite {
+    width: 90px;
+    height: auto;
+    margin-right: 10px;
+    
+  }
+  
+  
+  
