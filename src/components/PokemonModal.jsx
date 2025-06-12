@@ -3,7 +3,7 @@ import React from 'react';
 import pokeball from '../assets/pokeball2_0.png';
 
 
-import './PokemonModal.css';
+import './PokemonModal.scss';
 
 function PokemonModal({ name, spriteUrl, weight, height, type, habitat, evoChain, description, eggGroups, shape, color, gender, capture_rate, growth_rate, has_gender_differences, varieties, isLegendary, isMythical, onClose }) {
   return (
@@ -14,7 +14,8 @@ function PokemonModal({ name, spriteUrl, weight, height, type, habitat, evoChain
         <div className="modalInfo">
           <button className="closeButton" onClick={onClose}>×</button>
 
-          <p className="modalName"><img className="pokeballImg" src={pokeball} alt="pokeball" />{name.charAt(0).toUpperCase() + name.slice(1)}<img className="pokeballImg" src={pokeball} alt="pokeball" /></p>
+          <p className="modalName"><img className="pokeballImg" src={pokeball} alt="pokeball" />{translatedNames[p.name] || p.name.charAt(0).toUpperCase() + p.name.slice(1)}
+          <img className="pokeballImg" src={pokeball} alt="pokeball" /></p>
 
           <div className="main">
             <img src={spriteUrl} alt={name} className="modalSprite" />
@@ -28,7 +29,7 @@ function PokemonModal({ name, spriteUrl, weight, height, type, habitat, evoChain
 
             </div>
             <div className="desc">
-              <p className="LegendMythic">{isLegendary}{isMythical}</p>
+              <p className="legendMythic">{isLegendary}{isMythical}</p>
               <p>{description}</p>
 
             </div>

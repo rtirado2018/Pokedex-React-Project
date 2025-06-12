@@ -10,6 +10,24 @@ function PokemonList() {
   const [pokemon, setPokemon] = useState([]);
   const [visibleCount, setVisibleCount] = useState(10);
   const [selectedPokemon, setSelectedPokemon] = useState(null);
+  const [translatedNames, setTranslatedNames] = useState({});
+
+  useEffect(() => {
+    const loadTranslatedNames = async () => {
+      const newNames = {};
+      for (const p of visiblePokemon) {
+        const id = getIdFromUrl(p.url);
+        const res = await fetch(`https://pokeapi.co/api/v2/pokemon-species/${id}`);
+        const data = await res.json();
+        const translated = getTranslatedName(data);
+        newNames[p.name] = translated;
+      }
+      setTranslatedNames(prev => ({ ...prev, ...newNames }));
+    };
+  
+    loadTranslatedNames();
+  }, [visibleCount]); // se vuelve a lanzar cuando hay más Pokémon visibles
+  
 
   useEffect(() => {
     fetch('https://pokeapi.co/api/v2/pokemon?limit=1025&offset=0')
