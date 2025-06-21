@@ -5,7 +5,7 @@ import pokeball from '../assets/pokeball2_0.png';
 
 import './PokemonModal.scss';
 
-function PokemonModal({ name, spriteUrl, weight, height, type, habitat, evoChain, description, eggGroups, shape, color, gender, capture_rate, growth_rate, has_gender_differences, varieties, isLegendary, isMythical, onClose }) {
+function PokemonModal({ name, spriteUrl, weight, height, type, habitat, evoChain, description, eggGroups, shape, color, gender, capture_rate, growth_rate, has_gender_differences, varieties, isLegendary, isMythical, onClose, translatedNames }) {
   return (
     <div className="modalBackdrop" onClick={onClose}>
       <div className="modalContent" onClick={(e) => e.stopPropagation()}>
@@ -14,7 +14,7 @@ function PokemonModal({ name, spriteUrl, weight, height, type, habitat, evoChain
         <div className="modalInfo">
           <button className="closeButton" onClick={onClose}>×</button>
 
-          <p className="modalName"><img className="pokeballImg" src={pokeball} alt="pokeball" />{translatedNames[p.name] || p.name.charAt(0).toUpperCase() + p.name.slice(1)}
+          <p className="modalName"><img className="pokeballImg" src={pokeball} alt="pokeball" />{translatedNames[name] || name.charAt(0).toUpperCase() + name.slice(1)}
           <img className="pokeballImg" src={pokeball} alt="pokeball" /></p>
 
           <div className="main">

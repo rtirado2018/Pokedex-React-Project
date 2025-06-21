@@ -6,11 +6,14 @@ import translations from './translationMaps';
 
 import './pokemonList.css';
 
-function PokemonList() {
+function PokemonList({ selectedGeneration }) {
   const [pokemon, setPokemon] = useState([]);
   const [visibleCount, setVisibleCount] = useState(10);
   const [selectedPokemon, setSelectedPokemon] = useState(null);
+
+  const [filteredList, setFilteredList] = useState([]);
   const [translatedNames, setTranslatedNames] = useState({});
+  const visiblePokemon = filteredList.slice(0, visibleCount);
 
   useEffect(() => {
     const loadTranslatedNames = async () => {
@@ -24,10 +27,10 @@ function PokemonList() {
       }
       setTranslatedNames(prev => ({ ...prev, ...newNames }));
     };
-  
+
     loadTranslatedNames();
   }, [visibleCount]); // se vuelve a lanzar cuando hay más Pokémon visibles
-  
+
 
   useEffect(() => {
     fetch('https://pokeapi.co/api/v2/pokemon?limit=1025&offset=0')
@@ -57,6 +60,26 @@ function PokemonList() {
 
     return Promise.all(promises);
   };
+
+  useEffect(() => {
+    const fetchGeneration = async () => {
+      if (selectedGeneration === 'all') {
+        setFilteredList(pokemon);
+        return;
+      }
+  
+      const res = await fetch(`https://pokeapi.co/api/v2/generation/${selectedGeneration}`);
+      const data = await res.json();
+      const speciesNames = data.pokemon_species.map(p => p.name);
+  
+      const filtered = pokemon.filter(p => speciesNames.includes(p.name));
+      setFilteredList(filtered);
+      setVisibleCount(10); // 👈 reinicia el conteo cuando se filtra
+    };
+  
+    fetchGeneration();
+  }, [selectedGeneration, pokemon]);
+  
 
 
   //LÓGICA DE TRADUCCIÓN
@@ -128,12 +151,12 @@ function PokemonList() {
 
     //SPECIES:COLOR
     const colorRes = await fetch(speciesData.color.url);
-    const colorData =await colorRes.json();
+    const colorData = await colorRes.json();
     const color = translations.colorTranslations[colorData.name] || colorData.name;
 
     //SPECIES:GENDER_RATE
-    const gender_rate=speciesData.gender_rate;
-  
+    const gender_rate = speciesData.gender_rate;
+
     const gender = translations.genderTranslations[gender_rate.toString()];
 
     //SPECIES: IS_LEGENDARY
@@ -141,34 +164,34 @@ function PokemonList() {
     const isLegendaryText = isLegendary ? 'Legendario' : ' ';
 
     //SPECIES: IS_MYTHICAL
-    const isMythical=speciesData.is_mythical;
-    const isMythicalText=isMythical ? 'Mítico' : ' ';
-    
+    const isMythical = speciesData.is_mythical;
+    const isMythicalText = isMythical ? 'Mítico' : ' ';
 
-     //SPECIES: CAPTURE_RATE
-     const capture_rate=speciesData.capture_rate;
 
-     //SPECIES: GROWTH_RATE
-     const growth_rateRes = await fetch(speciesData.growth_rate.url);
-     const growth_rateData = await growth_rateRes.json();
-     const growth_rate = translations.growthTranslations[growth_rateData.name];
+    //SPECIES: CAPTURE_RATE
+    const capture_rate = speciesData.capture_rate;
+
+    //SPECIES: GROWTH_RATE
+    const growth_rateRes = await fetch(speciesData.growth_rate.url);
+    const growth_rateData = await growth_rateRes.json();
+    const growth_rate = translations.growthTranslations[growth_rateData.name];
 
     //SPECIES:HAS_GENDER_DIFFERENCES
-    const has_gender_differencesRes=speciesData.has_gender_differences;
-    const has_gender_differences=has_gender_differencesRes ? "Sí" : "No";
+    const has_gender_differencesRes = speciesData.has_gender_differences;
+    const has_gender_differences = has_gender_differencesRes ? "Sí" : "No";
 
-      //SPECIES: VARIETIES
-      const varieties = await Promise.all(
-        speciesData.varieties.map(async (entry) => {
-          const res = await fetch(entry.pokemon.url);
-          const data = await res.json();
-          return {
-            name: data.name,
-            sprite: data.sprites.other['official-artwork'].front_default,
-          };
-        })
-      );
-    
+    //SPECIES: VARIETIES
+    const varieties = await Promise.all(
+      speciesData.varieties.map(async (entry) => {
+        const res = await fetch(entry.pokemon.url);
+        const data = await res.json();
+        return {
+          name: data.name,
+          sprite: data.sprites.other['official-artwork'].front_default,
+        };
+      })
+    );
+
 
     //SPECIES: CADENA EVOLUTIVA
 
@@ -252,20 +275,19 @@ function PokemonList() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, [pokemon.length]);
 
-  const visiblePokemon = pokemon.slice(0, visibleCount);
+ 
 
   return (
     <>
       <ul className="pkmnList">
-        {pokemon.map(p => {
+        {filteredList.slice(0, visibleCount).map(p => {
           const id = getIdFromUrl(p.url);
           const spriteUrl = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png`;
 
           return (
             <li className="pkmn" key={p.name} onClick={() => handleClick(p)}>
-              <img className="pkmnSprite" src={spriteUrl} alt={p.name} onClick={() => handleClick(p)} />
+              <img className="pkmnSprite" src={spriteUrl} alt={p.name} />
               {p.name.charAt(0).toUpperCase() + p.name.slice(1)}
-
             </li>
           );
         })}
@@ -274,6 +296,7 @@ function PokemonList() {
       {selectedPokemon && (
         <PokemonModal
           name={selectedPokemon.name}
+          translatedNames={translatedNames}
           spriteUrl={selectedPokemon.spriteUrl}
           type={selectedPokemon.type}
           weight={selectedPokemon.weight}
