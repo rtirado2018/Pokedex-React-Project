@@ -4,7 +4,7 @@ import translations from './translationMaps';
 
 
 
-import './pokemonList.css';
+import './PokemonList.scss';
 
 function PokemonList({ selectedGeneration, selectedType }) {
   const [pokemon, setPokemon] = useState([]);

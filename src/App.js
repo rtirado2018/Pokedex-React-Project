@@ -3,7 +3,7 @@ import PokemonList from './components/PokemonList';
 import GenerationFilter from './components/GenerationFilter';
 import TypeFilter from './components/TypeFilter';
 import pokeball from './assets/pokeball2_0.png';
-import './App.css';
+import './App.scss';
 
 function App() {
   const [selectedGeneration, setSelectedGeneration] = useState('all')
