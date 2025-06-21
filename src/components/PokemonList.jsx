@@ -6,11 +6,10 @@ import translations from './translationMaps';
 
 import './pokemonList.css';
 
-function PokemonList({ selectedGeneration }) {
+function PokemonList({ selectedGeneration, selectedType }) {
   const [pokemon, setPokemon] = useState([]);
   const [visibleCount, setVisibleCount] = useState(10);
   const [selectedPokemon, setSelectedPokemon] = useState(null);
-
   const [filteredList, setFilteredList] = useState([]);
   const [translatedNames, setTranslatedNames] = useState({});
   const visiblePokemon = filteredList.slice(0, visibleCount);
@@ -61,26 +60,48 @@ function PokemonList({ selectedGeneration }) {
     return Promise.all(promises);
   };
 
+  //LÓGICA DE FILTRO  
+
   useEffect(() => {
-    const fetchGeneration = async () => {
-      if (selectedGeneration === 'all') {
-        setFilteredList(pokemon);
+    const fetchFilteredPokemon = async () => {
+      if (selectedType !== 'all') {
+        // Filtrar por tipo
+        const res = await fetch(`https://pokeapi.co/api/v2/type/${selectedType}`);
+        const data = await res.json();
+        // data.pokemon es un array con {pokemon: {name, url}, slot}
+        const pokemonOfType = data.pokemon.map(p => p.pokemon);
+  
+        let filtered = pokemonOfType;
+  
+        // Si además filtras por generación
+        if (selectedGeneration !== 'all') {
+          const genRes = await fetch(`https://pokeapi.co/api/v2/generation/${selectedGeneration}`);
+          const genData = await genRes.json();
+          const speciesNames = genData.pokemon_species.map(p => p.name);
+          filtered = filtered.filter(p => speciesNames.includes(p.name));
+        }
+  
+        setFilteredList(filtered);
+        setVisibleCount(10);
         return;
       }
   
-      const res = await fetch(`https://pokeapi.co/api/v2/generation/${selectedGeneration}`);
-      const data = await res.json();
-      const speciesNames = data.pokemon_species.map(p => p.name);
+      // Si es 'all', filtras solo por generación o muestras todo
+      let filtered = [...pokemon];
+      if (selectedGeneration !== 'all') {
+        const res = await fetch(`https://pokeapi.co/api/v2/generation/${selectedGeneration}`);
+        const data = await res.json();
+        const speciesNames = data.pokemon_species.map(p => p.name);
+        filtered = filtered.filter(p => speciesNames.includes(p.name));
+      }
   
-      const filtered = pokemon.filter(p => speciesNames.includes(p.name));
       setFilteredList(filtered);
-      setVisibleCount(10); // 👈 reinicia el conteo cuando se filtra
+      setVisibleCount(10);
     };
   
-    fetchGeneration();
-  }, [selectedGeneration, pokemon]);
+    fetchFilteredPokemon();
+  }, [selectedGeneration, selectedType, pokemon]);
   
-
 
   //LÓGICA DE TRADUCCIÓN
 
@@ -275,7 +296,7 @@ function PokemonList({ selectedGeneration }) {
     return () => window.removeEventListener('scroll', handleScroll);
   }, [pokemon.length]);
 
- 
+
 
   return (
     <>

@@ -1,4 +1,6 @@
 import React from 'react';
+
+import './Filters.scss';
 function GenerationFilter({ selectedGen, onChange }) {
     const generations = [
         { label: 'Todas', value: 'all' },

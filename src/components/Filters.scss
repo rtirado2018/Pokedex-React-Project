@@ -1,0 +1,30 @@
+.filterContainer {
+
+
+
+    label {
+        margin-right: 2em;
+    }
+
+    select {
+
+        border-radius: 4px;
+        border-color: #6a686dad;
+        option{
+            background-color: aquamarine;
+        }
+
+        &:hover{
+            border-color: #4c4b4ead;
+        }
+
+        &:focus{
+            outline:none;
+            border-color:#0d0d0ead;
+        }
+
+
+    }
+}
+
+ 
