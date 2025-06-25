@@ -1,18 +1,37 @@
 import React, { useEffect, useState } from 'react';
 import PokemonModal from './PokemonModal';
 import translations from './translationMaps';
+import { evoChain } from './EvolutionUtils';
+
+
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faArrowUpFromBracket} from '@fortawesome/free-solid-svg-icons';
+
 
 
 
 import './PokemonList.scss';
 
 function PokemonList({ selectedGeneration, selectedType }) {
+
   const [pokemon, setPokemon] = useState([]);
   const [visibleCount, setVisibleCount] = useState(10);
   const [selectedPokemon, setSelectedPokemon] = useState(null);
   const [filteredList, setFilteredList] = useState([]);
   const [translatedNames, setTranslatedNames] = useState({});
   const visiblePokemon = filteredList.slice(0, visibleCount);
+
+  const [showButton, setShowButton] = useState(false);
+  
+//LÓGICA DE APARICIÓN DEL BOTÓN DE VOLVER
+useEffect(() => {
+  const handleScroll = () => {
+    setShowButton(window.scrollY > 800); 
+  };
+  window.addEventListener('scroll', handleScroll);
+  return () => window.removeEventListener('scroll', handleScroll);
+}, []);
+
 
   useEffect(() => {
     const loadTranslatedNames = async () => {
@@ -215,34 +234,10 @@ function PokemonList({ selectedGeneration, selectedType }) {
 
 
     //SPECIES: CADENA EVOLUTIVA
-
-    const getEvolutionChain = (chain) => {
-      const evolutions = [];
-
-      let current = chain;
-
-      while (current) {
-        const name = current.species.name;
-
-        // Saca el ID del URL de species
-        const urlParts = current.species.url.split('/');
-        const id = urlParts[urlParts.length - 2];
-
-        // Construye URL del sprite oficial
-        const image = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${id}.png`;
-
-        evolutions.push({ name, image });
-
-        // Solo toma la primera evolución (asumimos línea recta)
-        current = current.evolves_to[0];
-      }
-
-      return evolutions;
-    };
-
-    const evoRes = await fetch(speciesData.evolution_chain.url);
-    const evoData = await evoRes.json();
-    const evoChain = getEvolutionChain(evoData.chain);
+// Ya importado arriba: import { evoChain } from './EvolutionUtils';
+const evoChainRes = await fetch(speciesData.evolution_chain.url);
+const evoChainData = await evoChainRes.json();
+const evolutionChain = evoChain(evoChainData.chain);  // ✅ Esto sí usará tu archivo externo
 
 
 
@@ -267,7 +262,7 @@ function PokemonList({ selectedGeneration, selectedType }) {
       varieties,
       isLegendaryText,
       isMythicalText,
-      evoChain,
+      evoChain: evolutionChain,
       generation,
 
     });
@@ -313,6 +308,13 @@ function PokemonList({ selectedGeneration, selectedType }) {
           );
         })}
       </ul>
+      
+      {showButton && (
+  <button className="return" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
+   <FontAwesomeIcon icon={faArrowUpFromBracket} />
+  </button>
+)}
+
 
       {selectedPokemon && (
         <PokemonModal
@@ -336,6 +338,9 @@ function PokemonList({ selectedGeneration, selectedType }) {
           isMythical={selectedPokemon.isMythicalText}
           evoChain={selectedPokemon.evoChain}
           onClose={() => setSelectedPokemon(null)}
+          filteredList={filteredList}
+          setSelectedPokemon={setSelectedPokemon}
+          handleClickFromParent={handleClick}
         />
       )}
     </>

@@ -1,21 +1,55 @@
 
 import React from 'react';
 import pokeball from '../assets/pokeball2_0.png';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faXmark, faArrowRight, faArrowLeft } from '@fortawesome/free-solid-svg-icons';
 
 
 import './PokemonModal.scss';
 
-function PokemonModal({ name, spriteUrl, weight, height, type, habitat, evoChain, description, eggGroups, shape, color, gender, capture_rate, growth_rate, has_gender_differences, varieties, isLegendary, isMythical, onClose, translatedNames }) {
+function PokemonModal({ name, spriteUrl, weight, height, type, habitat, evoChain, description, eggGroups, shape, color, gender, capture_rate, growth_rate, has_gender_differences, varieties, isLegendary, isMythical, onClose, translatedNames, filteredList, setSelectedPokemon, handleClickFromParent }) {
+  // Posición del Pokémon actual en la lista filtrada
+  const currentIndex = filteredList.findIndex(p => p.name === name);
+
+  // Ir al siguiente
+  const goNext = () => {
+    if (currentIndex < filteredList.length - 1) {
+      const next = filteredList[currentIndex + 1];
+      // Re-usa la lógica del padre: simplemente “simulas” un click al pasar
+      // el objeto con name y url; el padre se encargará de hacer fetch y set.
+      setSelectedPokemon(null);               // cierra modal mientras carga
+      handleClickFromParent(next);            // ver nota ↓
+    }
+  };
+
+  // Ir al anterior
+  const goPrev = () => {
+    if (currentIndex > 0) {
+      const prev = filteredList[currentIndex - 1];
+      setSelectedPokemon(null);
+      handleClickFromParent(prev);
+    }
+  };
+
+
+
+
+
   return (
     <div className="modalBackdrop" onClick={onClose}>
       <div className="modalContent" onClick={(e) => e.stopPropagation()}>
 
 
         <div className="modalInfo">
-          <button className="closeButton" onClick={onClose}>×</button>
+          <button className="closeButton" onClick={onClose}><span className="cancelIcon"><FontAwesomeIcon icon={faXmark} /></span></button>
+          <div className="navButtons">
+            <button onClick={goPrev} disabled={currentIndex === 0}><span className="arrow"><FontAwesomeIcon icon={faArrowLeft} /></span></button>
+            <p className="modalName"><img className="pokeballImg" src={pokeball} alt="pokeball" />{translatedNames[name] || name.charAt(0).toUpperCase() + name.slice(1)}
+              <img className="pokeballImg" src={pokeball} alt="pokeball" /></p>
+            <button onClick={goNext} disabled={currentIndex === filteredList.length - 1}><span className="arrow"><FontAwesomeIcon icon={faArrowRight} /></span></button>
+          </div>
 
-          <p className="modalName"><img className="pokeballImg" src={pokeball} alt="pokeball" />{translatedNames[name] || name.charAt(0).toUpperCase() + name.slice(1)}
-          <img className="pokeballImg" src={pokeball} alt="pokeball" /></p>
+
 
           <div className="main">
             <img src={spriteUrl} alt={name} className="modalSprite" />
@@ -60,33 +94,41 @@ function PokemonModal({ name, spriteUrl, weight, height, type, habitat, evoChain
           </div>
           <h3 className="attText">Variaciones:</h3>
           <div className="varieties-chain">
-         
-              <ul className="varietiesList">
-                {varieties.map((v, index) => (
-                  <li key={index}className="variety-stage">
-                    <img src={v.sprite} alt={v.name} width="50" />
-                    <p>{v.name.charAt(0).toUpperCase()+v.name.slice(1)}</p>
-                  </li>
-                ))}
-              </ul>
+
+            <ul className="varietiesList">
+              {varieties.map((v, index) => (
+                <li key={index} className="variety-stage">
+                  <img src={v.sprite} alt={v.name} width="50" />
+                  <p>{v.name.charAt(0).toUpperCase() + v.name.slice(1)}</p>
+                </li>
+              ))}
+            </ul>
           </div>
 
 
 
-          <h3>Cadena evolutiva</h3>
-          {evoChain && (
+          {Array.isArray(evoChain) && evoChain.length > 0 && (
             <div className="evolution-chain">
-
               <div className="evolution-list">
                 {evoChain.map((evo, index) => (
                   <div key={index} className="evolution-stage">
-                    <img src={evo.image} alt={evo.name} />
                     <p>{evo.name.charAt(0).toUpperCase() + evo.name.slice(1)}</p>
+                    <div className="evoImg"><img src={evo.image} alt={evo.name} /></div>
+                    <div className="evoData">
+                    
+                    {evo.method && <p className="evo-method"> {evo.method}</p>}
+                    
+                    </div>
+
+                    
+                    
                   </div>
                 ))}
               </div>
             </div>
           )}
+
+
 
         </div>
       </div>

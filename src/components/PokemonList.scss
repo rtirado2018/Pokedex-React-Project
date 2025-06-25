@@ -38,3 +38,24 @@
     }
 
 }
+
+.return{
+    font-size: 1.5em;
+    position: fixed;
+    bottom: 20px;
+    right: 30px;
+    padding: 10px 20px;
+    background-color: #383641;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    box-shadow: 0 0 10px rgba(0,0,0,0.2);
+    z-index:1000;
+    &:hover{
+        background-color: #26252c;
+    }
+    &:active{
+        background-color: #16141a;
+    }
+}
