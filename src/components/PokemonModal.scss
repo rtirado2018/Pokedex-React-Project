@@ -171,14 +171,15 @@ h3 {
                     justify-content: flex-start;
                     align-items: center;
                     gap: 30px;
-                    flex-wrap: nowrap;
+                    flex-wrap: wrap;
                     list-style: none;
                     
 
 
                     .variety-stage {
-                        display: flex;
+                        flex: 1 1 calc(25% - 10px);
                         flex-direction: row;
+                       
                         align-items: center;
                         gap: 10px;
                         background-color: white;
@@ -221,10 +222,11 @@ h3 {
                     justify-content: flex-start;
                     align-items: center;
                     gap: 30px;
-                    flex-wrap: nowrap;
+                    flex-wrap: wrap;
 
                     .evolution-stage {
                         display: flex;
+                        flex: 0.5 1 calc(25% - 10px);
                         flex-direction: column;
                         align-items: center;
                         gap: 10px;

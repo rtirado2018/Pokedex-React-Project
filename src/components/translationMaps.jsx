@@ -52,11 +52,26 @@ const shapeTranslations = {
 
   };
 
+  const evoItemsTranslations = {
+    "thunder-stone": "Piedra Trueno",
+    "fire-stone": "Piedra Fuego",
+    "water-stone": "Piedra Agua",
+    "leaf-stone": "Piedra Hoja",
+    "moon-stone": "Piedra Lunar",
+    "sun-stone": "Piedra Solar",
+    "shiny-stone": "Piedra Día",
+    "kings-rock": "Roca del Rey",
+
+
+  };
+
   const translations = {
     shapeTranslations,
     colorTranslations,
     growthTranslations,
     genderTranslations,
+    evoItemsTranslations,
+   
   };
 
   export default translations;

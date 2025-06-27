@@ -57,10 +57,21 @@ useEffect(() => {
   }, []);
 
   const getIdFromUrl = (url) => {
-    const parts = url.split('/');
-    return parts[parts.length - 2];
+    const match = url.match(/\/pokemon\/(\d+)\//);
+    if (match) return match[1];
+  
+    // Si no tiene número, saca el nombre del final de la URL
+    const nameMatch = url.match(/\/pokemon\/([^/]+)\/?$/);
+    if (nameMatch) return nameMatch[1];
+  
+    return null;
   };
+  
 
+  
+
+  
+  
   const fetchDescription = async (id) => {
     const res = await fetch(`https://pokeapi.co/api/v2/pokemon-species/${id}/`);
     const data = await res.json();
@@ -128,145 +139,161 @@ useEffect(() => {
     return data.names?.find(n => n.language.name === lang)?.name || data.name || 'Desconocido';
   };
 
-  const handleClick = async (p) => {
-    const id = getIdFromUrl(p.url);
-
-    //FETCH GENERAL SPECIES.SPECIES=DATOS ENCICLOPÉDICOS
-    const speciesRes = await fetch(`https://pokeapi.co/api/v2/pokemon-species/${id}`);
-    const speciesData = await speciesRes.json();
-
-
-    //FETCH ENDPOINT GENERAL
-    const phisycallRes = await fetch(`https://pokeapi.co/api/v2/pokemon/${id}`);
-    const phisycallData = await phisycallRes.json();
-
-    //IMAGEN ( Viene de repo externa a la API)
-    const spriteUrl = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${id}.png`;
-
-    //TIPO
-    const typeNames = phisycallData.types.map(t => t.type.name);
-    const typesInSpanish = await fetchTypeNamesInSpanish(typeNames);
-
-
-    //PESO Y ALTURA (FETCH GENERAL)
-    const weight = phisycallData.weight / 10;
-    const height = phisycallData.height / 10;
-
-    //GENERACIÓN (Esperando uso para filtro)
-    const generation = speciesData.generation.name;
-
-
-    //SPECIES: HABITAT
-    let habitatEs;
-    if (speciesData.habitat) {
-      const habitatRes = await fetch(speciesData.habitat.url);
-      const habitatData = await habitatRes.json();
-
-      habitatEs = getTranslatedName(habitatData);
-
-    } else {
-      habitatEs = 'Desconocido';
-    }
-
-    //SPECIES: DESCRIPCIÓN
-    const description = await fetchDescription(id);
-
-
-
-    //SPECIES: EGG_GROUPS
-
-    const eggGroups = await Promise.all(
-      speciesData.egg_groups.map(async (group) => {
-        const res = await fetch(group.url);
-        const data = await res.json();
-        return getTranslatedName(data);
-      })
-    );
-
-
-    //SPECIES: SHAPE
-    const shapeRes = await fetch(speciesData.shape.url);
-    const shapeData = await shapeRes.json();
-    const shapeEs = translations.shapeTranslations[shapeData.name] || shapeData.name;
-
-    //SPECIES:COLOR
-    const colorRes = await fetch(speciesData.color.url);
-    const colorData = await colorRes.json();
-    const color = translations.colorTranslations[colorData.name] || colorData.name;
-
-    //SPECIES:GENDER_RATE
-    const gender_rate = speciesData.gender_rate;
-
-    const gender = translations.genderTranslations[gender_rate.toString()];
-
-    //SPECIES: IS_LEGENDARY
-    const isLegendary = speciesData.is_legendary;
-    const isLegendaryText = isLegendary ? 'Legendario' : ' ';
-
-    //SPECIES: IS_MYTHICAL
-    const isMythical = speciesData.is_mythical;
-    const isMythicalText = isMythical ? 'Mítico' : ' ';
-
-
-    //SPECIES: CAPTURE_RATE
-    const capture_rate = speciesData.capture_rate;
-
-    //SPECIES: GROWTH_RATE
-    const growth_rateRes = await fetch(speciesData.growth_rate.url);
-    const growth_rateData = await growth_rateRes.json();
-    const growth_rate = translations.growthTranslations[growth_rateData.name];
-
-    //SPECIES:HAS_GENDER_DIFFERENCES
-    const has_gender_differencesRes = speciesData.has_gender_differences;
-    const has_gender_differences = has_gender_differencesRes ? "Sí" : "No";
-
-    //SPECIES: VARIETIES
-    const varieties = await Promise.all(
-      speciesData.varieties.map(async (entry) => {
-        const res = await fetch(entry.pokemon.url);
-        const data = await res.json();
-        return {
-          name: data.name,
-          sprite: data.sprites.other['official-artwork'].front_default,
-        };
-      })
-    );
-
-
-    //SPECIES: CADENA EVOLUTIVA
-// Ya importado arriba: import { evoChain } from './EvolutionUtils';
-const evoChainRes = await fetch(speciesData.evolution_chain.url);
-const evoChainData = await evoChainRes.json();
-const evolutionChain = evoChain(evoChainData.chain);  // ✅ Esto sí usará tu archivo externo
-
-
-
-
-
-
-    setSelectedPokemon({
-      name: p.name,
-      spriteUrl,
-      type: typesInSpanish,
-      weight,
-      height,
-      habitatEs,
-      description,
-      eggGroups,
-      shapeEs,
-      color,
-      gender,
-      capture_rate,
-      growth_rate,
-      has_gender_differences,
-      varieties,
-      isLegendaryText,
-      isMythicalText,
-      evoChain: evolutionChain,
-      generation,
-
-    });
+  const getIdFromName = (name) => {
+    const poke = pokemon.find(p => p.name === name.toLowerCase());
+    if (!poke) return null;
+    return getIdFromUrl(poke.url);
   };
+  
+
+  const handleClick = async (p) => {
+    
+    const id = getIdFromUrl(p.url);
+    if (!id) {
+      console.error("❌ ID inválido extraído desde la URL:", p.url);
+      alert("Este Pokémon tiene una URL inválida. ¡Ups!");
+      return;
+    }
+    console.log(`▶️ Click en: ${p.name}, ID: ${id}`);
+    
+  
+    try {
+      // 1. Especie
+      const speciesRes = await fetch(`https://pokeapi.co/api/v2/pokemon-species/${id}`);
+      if (!speciesRes.ok) throw new Error(`speciesRes failed: ${speciesRes.status}`);
+      const speciesData = await speciesRes.json();
+  
+      // 2. Datos físicos
+      const phisycallRes = await fetch(`https://pokeapi.co/api/v2/pokemon/${id}`);
+      if (!phisycallRes.ok) throw new Error(`phisycallRes failed: ${phisycallRes.status}`);
+      const phisycallData = await phisycallRes.json();
+  
+      // 3. Imagen
+      const spriteUrl = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${id}.png`;
+  
+      // 4. Tipos
+      const typeNames = phisycallData.types.map(t => t.type.name);
+      const typesInSpanish = await fetchTypeNamesInSpanish(typeNames);
+  
+      const weight = phisycallData.weight / 10;
+      const height = phisycallData.height / 10;
+  
+      const generation = speciesData.generation.name;
+  
+      // 5. Hábitat
+      let habitatEs = 'Desconocido';
+      if (speciesData.habitat) {
+        const habitatRes = await fetch(speciesData.habitat.url);
+        if (!habitatRes.ok) throw new Error(`habitatRes failed: ${habitatRes.status}`);
+        const habitatData = await habitatRes.json();
+        habitatEs = getTranslatedName(habitatData);
+      }
+  
+      // 6. Descripción
+      const description = await fetchDescription(id);
+  
+      // 7. Grupos huevo
+      const eggGroups = await Promise.all(
+        speciesData.egg_groups.map(async (group) => {
+          const res = await fetch(group.url);
+          if (!res.ok) throw new Error(`egg group failed: ${res.status}`);
+          const data = await res.json();
+          return getTranslatedName(data);
+        })
+      );
+  
+      // 8. Forma
+      const shapeRes = await fetch(speciesData.shape.url);
+      if (!shapeRes.ok) throw new Error(`shapeRes failed: ${shapeRes.status}`);
+      const shapeData = await shapeRes.json();
+      const shapeEs = translations.shapeTranslations[shapeData.name] || shapeData.name;
+  
+      // 9. Color
+      const colorRes = await fetch(speciesData.color.url);
+      if (!colorRes.ok) throw new Error(`colorRes failed: ${colorRes.status}`);
+      const colorData = await colorRes.json();
+      const color = translations.colorTranslations[colorData.name] || colorData.name;
+  
+      const gender = translations.genderTranslations[speciesData.gender_rate.toString()];
+      const isLegendaryText = speciesData.is_legendary ? 'Legendario' : ' ';
+      const isMythicalText = speciesData.is_mythical ? 'Mítico' : ' ';
+      const capture_rate = speciesData.capture_rate;
+  
+      const growth_rateRes = await fetch(speciesData.growth_rate.url);
+      if (!growth_rateRes.ok) throw new Error(`growth_rateRes failed: ${growth_rateRes.status}`);
+      const growth_rateData = await growth_rateRes.json();
+      const growth_rate = translations.growthTranslations[growth_rateData.name];
+  
+      const has_gender_differences = speciesData.has_gender_differences ? "Sí" : "No";
+  
+      const varieties = await Promise.all(
+        speciesData.varieties.map(async (entry) => {
+          const res = await fetch(entry.pokemon.url);
+          if (!res.ok) throw new Error(`variety failed: ${res.status}`);
+          const data = await res.json();
+          return {
+            name: data.name,
+            sprite: data.sprites.other['official-artwork'].front_default,
+          };
+        })
+      );
+  
+      const evoChainRes = await fetch(speciesData.evolution_chain.url);
+      if (!evoChainRes.ok) throw new Error(`evoChainRes failed: ${evoChainRes.status}`);
+      const evoChainData = await evoChainRes.json();
+      const evolutionChain = evoChain(evoChainData.chain);
+      const getIdFromUrl = (url) => {
+        const match = url.match(/\/pokemon\/(\d+)\//);
+        return match ? match[1] : null;
+      };
+      
+      const evoChainWithImages = evolutionChain.map(evo => {
+        const id = evo.url ? getIdFromUrl(evo.url) : getIdFromName(evo.name);
+        const url = evo.url || (id ? `https://pokeapi.co/api/v2/pokemon/${id}/` : null);
+        return {
+          ...evo,
+          url,  // Asegura que evo tenga url válida para luego usarla sin problemas
+          image: id 
+            ? `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${id}.png`
+            : null
+        };
+      });
+      
+      
+      
+  
+      console.log("✅ Datos cargados correctamente para:", p.name);
+  
+      setSelectedPokemon({
+        name: p.name,
+        spriteUrl,
+        type: typesInSpanish,
+        weight,
+        height,
+        habitatEs,
+        description,
+        eggGroups,
+        shapeEs,
+        color,
+        gender,
+        capture_rate,
+        growth_rate,
+        has_gender_differences,
+        varieties,
+        isLegendaryText,
+        isMythicalText,
+        evoChain: evoChainWithImages,
+
+        generation,
+      });
+  
+    } catch (error) {
+      console.error("❌ Error en handleClick:", error);
+      alert("Hubo un error cargando los datos de este Pokémon 🐛. ¡Intenta con otro o recarga la página!");
+      setSelectedPokemon(null);
+    }
+  };
+  
 
 
   // Detectar scroll en el window

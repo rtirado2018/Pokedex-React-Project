@@ -1,5 +1,9 @@
 
 import React from 'react';
+import translations from './translationMaps';
+import { useEffect, useState } from 'react';
+
+
 import pokeball from '../assets/pokeball2_0.png';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faXmark, faArrowRight, faArrowLeft } from '@fortawesome/free-solid-svg-icons';
@@ -10,6 +14,14 @@ import './PokemonModal.scss';
 function PokemonModal({ name, spriteUrl, weight, height, type, habitat, evoChain, description, eggGroups, shape, color, gender, capture_rate, growth_rate, has_gender_differences, varieties, isLegendary, isMythical, onClose, translatedNames, filteredList, setSelectedPokemon, handleClickFromParent }) {
   // Posición del Pokémon actual en la lista filtrada
   const currentIndex = filteredList.findIndex(p => p.name === name);
+  const [localEvoChain, setLocalEvoChain] = useState([]);
+  useEffect(() => {
+    setLocalEvoChain(evoChain || []);
+  }, [evoChain]);
+  
+
+  
+
 
   // Ir al siguiente
   const goNext = () => {
@@ -32,6 +44,19 @@ function PokemonModal({ name, spriteUrl, weight, height, type, habitat, evoChain
   };
 
 
+  const translateItem = (method) => {
+    if (!method) return '';
+
+    // Encuentra si hay alguna clave del diccionario presente en el método
+    const itemKey = Object.keys(translations.evoItemsTranslations)
+      .find(key => method.toLowerCase().includes(key));
+
+    // Si encuentra, traduce; si no, deja como está
+    return itemKey ? method.replace(
+      new RegExp(itemKey, 'i'),
+      translations.evoItemsTranslations[itemKey]
+    ) : method;
+  };
 
 
 
@@ -107,23 +132,32 @@ function PokemonModal({ name, spriteUrl, weight, height, type, habitat, evoChain
 
 
 
-          {Array.isArray(evoChain) && evoChain.length > 0 && (
+          {Array.isArray(localEvoChain) && localEvoChain.length > 0 && (
             <div className="evolution-chain">
               <div className="evolution-list">
-                {evoChain.map((evo, index) => (
-                  <div key={index} className="evolution-stage">
+                {localEvoChain.map((evo, index) => (
+                  <div
+                    key={index}
+                    className="evolution-stage"
+                    onClick={() => {
+                      setSelectedPokemon(null);
+                      handleClickFromParent({
+                        name: evo.name,
+                        url: evo.url  // aquí usa la URL con ID que viene del padre
+                      });
+                    }}
+                    
+                    
+                    style={{ cursor: 'pointer' }}
+                  >
                     <p>{evo.name.charAt(0).toUpperCase() + evo.name.slice(1)}</p>
                     <div className="evoImg"><img src={evo.image} alt={evo.name} /></div>
                     <div className="evoData">
-                    
-                    {evo.method && <p className="evo-method"> {evo.method}</p>}
-                    
+                      {evo.method && <p className="evo-method">{translateItem(evo.method)}</p>}
                     </div>
-
-                    
-                    
                   </div>
                 ))}
+
               </div>
             </div>
           )}
